@@ -1,0 +1,18 @@
+services:
+  tkj-debug-env:
+    # 1. Provide the full name of your image on Docker Hub / Registry
+    image: cendervn/pico-ultimate:latest
+    
+    # 2. Provide the build context as a fallback/development option
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    container_name: tkj_hat_dev
+    ports:
+      - "8080:8080"
+    privileged: true
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - ../Project:/home/coder/project
+    restart: unless-stopped
