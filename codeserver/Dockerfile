@@ -69,27 +69,6 @@ RUN mkdir -p /home/coder/.local/share/code-server/User/ && \
     "python.defaultInterpreterPath": "/usr/bin/python3" \
     }' > /home/coder/.local/share/code-server/User/settings.json
 
-# 10. Create a Template launch.json (Optimized for RP2040)
-# RUN mkdir -p /home/coder/templates && \
-#     echo '{ \
-#     "version": "0.2.0", \
-#     "configurations": [ \
-#         { \
-#             "name": "Pico Debug", \
-#             "type": "cortex-debug", \
-#             "cwd": "${workspaceRoot}", \
-#             "executable": "${command:raspberry-pi-pico.launchTargetPath}", \
-#             "request": "launch", \
-#             "servertype": "openocd", \
-#             "gdbPath": "gdb-multiarch", \
-#             "device": "RP2040", \
-#             "configFiles": ["interface/cmsis-dap.cfg", "target/rp2040.cfg"], \
-#             "svdFile": "/home/coder/.pico-sdk/sdk/2.2.0/src/rp2040/hardware_regs/RP2040.svd", \
-#             "runToEntryPoint": "main" \
-#         } \
-#     ] \
-# }' > /home/coder/templates/launch.json
-
 EXPOSE 8080
 RUN echo "export PICO_SDK_PATH=/home/coder/.pico-sdk/sdk/2.2.0" >> /home/coder/.bashrc
 CMD ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "none", "."]
