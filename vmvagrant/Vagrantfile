@@ -1,46 +1,92 @@
 Vagrant.configure("2") do |config|
-  # Base Image: Debian 12 (Bookworm)
   config.vm.box = "debian/bookworm64"
 
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true
-    vb.memory = "4096" # GNOME needs at least 4GB to be happy
+    vb.name = "Pico-XFCE-Dev"
+    vb.memory = "4096"
     vb.cpus = 2
-    
-    # Crucial for GNOME UI performance
     vb.customize ["modifyvm", :id, "--vram", "128"]
     vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
-    vb.customize ["modifyvm", :id, "--accelerate3d", "on"] 
+    vb.customize ["modifyvm", :id, "--clipboard-mode", "bidirectional"]
+    vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
   end
 
   config.vm.provision "shell", inline: <<-SHELL
     set -e
     export DEBIAN_FRONTEND=noninteractive
 
+    # 1. Fix Repositories for Guest Additions
+    echo "deb https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list
+    echo "deb https://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list
+    echo "deb https://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
+
+    # 2. Install System Tools
     apt-get update
-    apt-get install -y task-gnome-desktop x11-xserver-utils lightdm \
-            build-essential git
+    apt-get install -y xfce4 xfce4-goodies lightdm build-essential git \
+      python3 python3-pip python3-serial usbutils cmake ninja-build \
+      gdb-multiarch wget curl pkg-config autoconf automake libtool \
+      texinfo gawk sudo libusb-1.0-0-dev libhidapi-dev libftdi1-dev \
+      libjim-dev libudev-dev gcc-arm-none-eabi libnewlib-arm-none-eabi \
+      libstdc++-arm-none-eabi-newlib gpg ca-certificates virtualbox-guest-x11
 
-    # 2. Install Pico Build Dependencies
-    apt-get install -y python3 python3-pip python3-serial \
-      usbutils clangd cmake ninja-build gdb-multiarch wget curl pkg-config \
-      autoconf automake libtool texinfo gawk sudo libusb-1.0-0-dev libhidapi-dev \
-      libftdi1-dev libjim-dev libudev-dev gcc-arm-none-eabi libnewlib-arm-none-eabi \
-      libstdc++-arm-none-eabi-newlib picotool openocd
+    # 3. Install VS Code
+    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+    install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+    echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list
+    rm -f packages.microsoft.gpg
+    apt-get update && apt-get install -y code
 
-    # 3. Setup Pico SDK 2.2.0
+    # 4. Setup Pico SDK 2.2.0
+    export PICO_SDK_PATH=/home/vagrant/.pico-sdk/sdk/2.2.0
     mkdir -p /home/vagrant/.pico-sdk/sdk
-    if [ ! -d "/home/vagrant/.pico-sdk/sdk/2.2.0" ]; then
-      git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git /home/vagrant/.pico-sdk/sdk/2.2.0
-      cd /home/vagrant/.pico-sdk/sdk/2.2.0 && git checkout 2.2.0
+    if [ ! -d "$PICO_SDK_PATH" ]; then
+      git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git "$PICO_SDK_PATH"
+      cd "$PICO_SDK_PATH" && git checkout 2.2.0
     fi
-    chown -R vagrant:vagrant /home/vagrant/.pico-sdk
-    echo "export PICO_SDK_PATH=/home/vagrant/.pico-sdk/sdk/2.2.0" >> /home/vagrant/.bashrc
+    echo "export PICO_SDK_PATH=$PICO_SDK_PATH" >> /home/vagrant/.bashrc
 
-    # 4. USB / Udev rules for Pico
+    # 5. Build OpenOCD
+    cd /tmp
+    git clone https://github.com/raspberrypi/openocd.git --depth=1 /tmp/openocd
+    cd /tmp/openocd && git submodule update --init --recursive
+    ./bootstrap && ./configure --enable-ftdi --enable-cmsis-dap --enable-hidapi
+    make -j$(nproc) && make install
+    cd /tmp && rm -rf /tmp/openocd
+
+    # 6. Build Picotool
+    cd /tmp
+    git clone https://github.com/raspberrypi/picotool.git --depth=1 /tmp/picotool
+    cd /tmp/picotool && mkdir build && cd build
+    cmake .. && make -j$(nproc) && make install
+    cd /tmp && rm -rf /tmp/picotool
+
+    # 7. USB Rules & Auto-login
     curl -o /etc/udev/rules.d/60-openocd.rules https://raw.githubusercontent.com/raspberrypi/pico-setup/master/60-openocd.rules
-    
-    # 5. Auto-login setup (Optional, so you don't have to type password in the VM)
-    echo "[Seat:*]\nautologin-user=vagrant\nautologin-user-timeout=0" > /etc/lightdm/lightdm.conf.d/01_autologin.conf
+    udevadm control --reload-rules && udevadm trigger
+    mkdir -p /etc/lightdm/lightdm.conf.d/
+    echo -e "[Seat:*]\nautologin-user=vagrant\nautologin-user-timeout=0" > /etc/lightdm/lightdm.conf.d/01_autologin.conf
+
+    # 8. Extensions & VS Code Settings
+    EXTENSIONS=("ms-python.python" "llvm-vs-code-extensions.vscode-clangd" "ms-vscode.cpptools" "ms-vscode.vscode-serial-monitor" "marus25.cortex-debug" "raspberry-pi.raspberry-pi-pico")
+    for ext in "${EXTENSIONS[@]}"; do
+      su - vagrant -c "code --install-extension $ext --force"
+    done
+
+    mkdir -p /home/vagrant/.config/Code/User/
+    cat <<EOF > /home/vagrant/.config/Code/User/settings.json
+    {
+        "raspberry-pi-pico.pythonExecutable": "/usr/bin/python3",
+        "raspberry-pi-pico.picoSdkPath": "/home/vagrant/.pico-sdk/sdk/2.2.0",
+        "raspberry-pi-pico.picotoolPath": "/usr/local/bin/picotool",
+        "raspberry-pi-pico.openocdPath": "/usr/local/bin/openocd",
+        "raspberry-pi-pico.useBuildinOpenocd": false,
+        "cmake.cmakePath": "/usr/bin/cmake",
+        "cmake.generator": "Ninja",
+        "python.defaultInterpreterPath": "/usr/bin/python3"
+    }
+EOF
+
+    chown -R vagrant:vagrant /home/vagrant/.pico-sdk /home/vagrant/.config
   SHELL
 end
