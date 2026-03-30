@@ -37,21 +37,16 @@
     "raspberry-pi-pico.useCmakeTools": false,
     "raspberry-pi-pico.cmakePath": "${HOME}/.pico-sdk/cmake/v3.31.5/bin/cmake",
     "raspberry-pi-pico.ninjaPath": "${HOME}/.pico-sdk/ninja/v1.12.1/ninja",
-    "raspberry-pi-pico.python3Path": "/usr/bin/python3",
+    "python.linting.enabled": true,
     "python.languageServer": "Pylance",
     "python.analysis.typeCheckingMode": "basic",
     "python.analysis.diagnosticSeverityOverrides": {
         "reportMissingModuleSource": "none"
     },
-    "python.terminal.activateEnvironment": false,
-    "micropico.openOnStart": true,
     "python.analysis.typeshedPaths": [
-        "~/.micropico-stubs/included",
         ".vscode/Pico-W-Stub"
     ],
     "python.analysis.extraPaths": [
-        "~/.micropico-stubs/included",
         ".vscode/Pico-W-Stub"
-    ],
-    "python.linting.enabled": true
+    ]
 }

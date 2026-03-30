@@ -1,18 +1,19 @@
 services:
   tkj-debug-env:
-    # 1. Provide the full name of your image on Docker Hub / Registry
-    #image: cendervn/pico-ultimate:latest
-    
-    # 2. Provide the build context as a fallback/development option
+    image: pico-ultimate:latest
     build:
       context: .
       dockerfile: Dockerfile
-    
     container_name: tkj_hat_dev
     ports:
       - "8080:8080"
     privileged: true
+    # Add this section to map the ACM ports
+    devices:
+      - "/dev/ttyACM0:/dev/ttyACM0"
+      - "/dev/ttyACM1:/dev/ttyACM1"
     volumes:
       - /dev/bus/usb:/dev/bus/usb
+      - /dev:/dev 
       - ../Project:/home/coder/project
     restart: unless-stopped

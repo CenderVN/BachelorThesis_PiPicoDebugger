@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     autoconf automake libtool texinfo gawk sudo libusb-1.0-0-dev libhidapi-dev \
     libftdi1-dev libjim-dev libudev-dev gcc-arm-none-eabi libnewlib-arm-none-eabi \
     libstdc++-arm-none-eabi-newlib ca-certificates gnupg \
+    minicom\
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 2. Setup User and Permissions
@@ -30,10 +31,13 @@ ENV PICO_SDK_PATH=/home/coder/.pico-sdk/sdk/2.2.0
 RUN mkdir -p /home/coder/.pico-sdk/sdk && \
     git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git ${PICO_SDK_PATH} \
     && cd ${PICO_SDK_PATH} && git checkout 2.2.0
+ENV FREERTOS_KERNEL_PATH=/home/coder/FreeRTOS-Kernel
+RUN git clone --recurse-submodules https://github.com/FreeRTOS/FreeRTOS-Kernel.git ${FREERTOS_KERNEL_PATH}
+RUN echo "export FREERTOS_KERNEL_PATH=/home/coder/FreeRTOS-Kernel" >> /home/coder/.bashrc
 
 # 5. Build OpenOCD (Raspberry Pi version)
 USER root
-RUN git clone https://github.com/raspberrypi/openocd.git --depth=1 /tmp/openocd \
+RUN git clone https://github.com/openocd-org/openocd.git --depth=1 /tmp/openocd \
     && cd /tmp/openocd && git submodule update --init --recursive \
     && ./bootstrap && ./configure --enable-ftdi --enable-cmsis-dap --enable-hidapi \
     && make -j$(nproc) && make install && rm -rf /tmp/openocd
