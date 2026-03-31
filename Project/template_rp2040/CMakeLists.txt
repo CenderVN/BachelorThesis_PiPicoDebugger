@@ -1,5 +1,3 @@
-# Generated Cmake Pico project file
-
 cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_STANDARD 11)
@@ -24,6 +22,11 @@ if (EXISTS ${picoVscode})
 endif()
 # ====================================================================================
 set(PICO_BOARD pico_w CACHE STRING "Board type")
+if(DEFINED ENV{FREERTOS_KERNEL_PATH})
+    set(FREERTOS_KERNEL_PATH $ENV{FREERTOS_KERNEL_PATH} CACHE PATH "Path to FreeRTOS" FORCE)
+else()
+    set(FREERTOS_KERNEL_PATH ${USERHOME}/FreeRTOS-Kernel CACHE PATH "Path to FreeRTOS" FORCE)
+endif()
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -32,9 +35,8 @@ project(demo_project C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
-
+add_subdirectory(${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040 FREERTOS_KERNEL)
 # Add executable. Default name is the project name, version 0.1
-
 add_executable(demo_project demo_project.c )
 
 pico_set_program_name(demo_project "demo_project")
@@ -55,7 +57,10 @@ target_include_directories(demo_project PRIVATE
 
 # Add any user requested libraries
 target_link_libraries(demo_project 
-        
+        pico_stdlib
+        pico_multicore
+        FreeRTOS-Kernel-Heap4
+        pico_async_context_freertos
         )
 
 pico_add_extra_outputs(demo_project)

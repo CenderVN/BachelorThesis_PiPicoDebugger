@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-
+#include "FreeRTOS.h"
+#include "task.h"
 int main() {
     // 1. Initialize Serial (UART/USB)
     stdio_init_all();

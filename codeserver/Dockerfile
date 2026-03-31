@@ -63,7 +63,9 @@ RUN code-server --install-extension ms-python.python \
 # 9. Pre-Configure VS Code Settings
 RUN mkdir -p /home/coder/.local/share/code-server/User/ && \
     echo '{ \
-    "raspberry-pi-pico.pythonExecutable": "/usr/bin/python3", \
+    "workbench.colorTheme": "Default Dark+", \
+    "workbench.iconTheme": "vs-seti", \
+    "raspberry-pi-pico.python3Path": "/usr/bin/python3", \
     "raspberry-pi-pico.picoSdkPath": "/home/coder/.pico-sdk/sdk/2.2.0", \
     "raspberry-pi-pico.picotoolPath": "/usr/local/bin/picotool", \
     "raspberry-pi-pico.openocdPath": "/usr/local/bin/openocd", \
@@ -72,7 +74,10 @@ RUN mkdir -p /home/coder/.local/share/code-server/User/ && \
     "cmake.generator": "Ninja", \
     "python.defaultInterpreterPath": "/usr/bin/python3" \
     }' > /home/coder/.local/share/code-server/User/settings.json
-
+# Create the code-server config directory and file
+RUN mkdir -p /home/coder/.config/code-server && \
+    echo "bind-addr: 0.0.0.0:8080\nauth: none\ncert: true" > /home/coder/.config/code-server/config.yaml
 EXPOSE 8080
 RUN echo "export PICO_SDK_PATH=/home/coder/.pico-sdk/sdk/2.2.0" >> /home/coder/.bashrc
-CMD ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "none", "."]
+#CMD ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "none", "."]
+CMD ["code-server", "/home/coder/project"]

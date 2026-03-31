@@ -1,6 +1,6 @@
 services:
   tkj-debug-env:
-    image: pico-ultimate:latest
+    #image: pico-ultimate:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,7 +8,6 @@ services:
     ports:
       - "8080:8080"
     privileged: true
-    # Add this section to map the ACM ports
     devices:
       - "/dev/ttyACM0:/dev/ttyACM0"
       - "/dev/ttyACM1:/dev/ttyACM1"
