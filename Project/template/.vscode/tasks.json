@@ -1,0 +1,95 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🗑️ Nuclear Clean",
+            "type": "shell",
+            "command": "rm -rf ${workspaceFolder}/build/*",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        // {
+        //     "label": "Compile Project",
+        //     "type": "process",
+        //     "isBuildCommand": true,
+        //     "command": "/usr/bin/ninja",
+        //     "args": [
+        //         "-C",
+        //         "${workspaceFolder}/build"
+        //     ],
+        //     "group": "build",
+        //     "presentation": {
+        //         "reveal": "always",
+        //         "panel": "dedicated"
+        //     },
+        //     "problemMatcher": "$gcc"
+        // },
+        {
+            "label": "Run Project (Picotool)",
+            "type": "process",
+            "command": "/usr/local/bin/picotool",
+            "args": [
+                "load",
+                "${command:raspberry-pi-pico.launchTargetPath}",
+                "-fx"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+    "label": "Flash (GDB)",
+    "type": "shell",
+    /* The prefix 'pkill' kills any stuck sessions BEFORE starting the new one */
+    "command": "pkill -9 gdb-multiarch || true; pkill -9 openocd || true; /usr/bin/gdb-multiarch /home/coder/project/template/build/demo_project.elf --batch -ex \"target extended-remote | /usr/local/bin/openocd -c 'gdb_port pipe; set USE_CORE 0' -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c 'adapter speed 4000'\" -ex \"load\" -ex \"monitor reset init\" -ex \"quit\"",
+    "runOptions": {
+        "instanceLimit": 1,
+        "reRun": true
+    },
+    "problemMatcher": [],
+    "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true,
+        "close": true  /* <--- This tells VS Code to destroy the terminal when done */
+    }
+},
+        {
+            "label": "Rescue Reset",
+            "type": "process",
+            "command": "/usr/local/bin/openocd",
+            "args": [
+                "-f", "interface/cmsis-dap.cfg",
+                "-f", "target/rp2040.cfg",
+                "-c", "adapter speed 4000; reset halt; exit"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "RISC-V Reset (RP2350)",
+            "type": "process",
+            "command": "/usr/local/bin/openocd",
+            "args": [
+                "-c", "set USE_CORE { rv0 rv1 cm0 cm1 }",
+                "-f", "interface/cmsis-dap.cfg",
+                "-f", "target/rp2350.cfg",
+                "-c", "adapter speed 4000; init;",
+                "-c", "write_memory 0x40120158 8 { 0x3 };",
+                "-c", "reset halt; targets rp2350.rv0; exit"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

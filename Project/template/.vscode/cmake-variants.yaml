@@ -1,0 +1,26 @@
+# Settings for the Status Bar Menus
+chip:
+  default: rp2040
+  description: Select the target microcontroller
+  choices:
+    rp2040:
+      short: "RP2040"
+      settings:
+        PICO_PLATFORM: rp2040
+    rp2350:
+      short: "RP2350"
+      settings:
+        PICO_PLATFORM: rp2350
+
+debug_mode:
+  default: pico_debug_on
+  description: Select Core Count
+  choices:
+    pico_debug_on:
+      short: "pico-debug (1 Core)"
+      settings:
+        PICO_DEBUG_MODE: ON
+    pico_debug_off:
+      short: "Dual-Core SMP (2 Cores)"
+      settings:
+        PICO_DEBUG_MODE: OFF

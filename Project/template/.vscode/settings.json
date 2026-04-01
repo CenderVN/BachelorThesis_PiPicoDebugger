@@ -1,0 +1,48 @@
+{
+    /* 1. STATUS BAR VISIBILITY (Critical for Buttons) */
+    "cmake.options.statusBarVisibility": "visible",
+    "cmake.showSystemKits": true,
+    "cmake.options.advanced": {
+        "build": { "statusBarVisibility": "visible" },
+        "launch": { "statusBarVisibility": "visible" },
+        "debug": { "statusBarVisibility": "visible" },
+        "package": {
+            "statusBarVisibility": "hidden"
+        },
+        "test": {
+            "statusBarVisibility": "hidden"
+        }
+    },
+
+    /* 2. PATHS (Absolute paths for Docker stability) */
+    "cmake.cmakePath": "/home/coder/.pico-sdk/cmake/v3.31.5/bin/cmake",
+    "raspberry-pi-pico.cmakePath": "/home/coder/.pico-sdk/cmake/v3.31.5/bin/cmake",
+    "raspberry-pi-pico.ninjaPath": "/home/coder/.pico-sdk/ninja/v1.12.1/ninja",
+    "raspberry-pi-pico.python3Path": "/usr/bin/python3",
+    "raspberry-pi-pico.picoSdkPath": "/home/coder/.pico-sdk/sdk/2.2.0",
+
+    /* 3. EXTENSION INTEGRATION (Fixes "Broken" Extension) */
+    "raspberry-pi-pico.useCmakeTools": true,
+    "raspberry-pi-pico.cmakeAutoConfigure": true,
+    "cmake.generator": "Ninja",
+    "cmake.configureOnOpen": true,
+    "cmake.automaticReconfigure": true,
+
+    /* 4. COMPILER & INTELLISENSE */
+    "C_Cpp.default.compilerPath": "/usr/bin/arm-none-eabi-gcc",
+    "C_Cpp.debugShortcut": false,
+    "python.defaultInterpreterPath": "/usr/bin/python3",
+
+    /* 5. THEME & UI */
+    "workbench.colorTheme": "Default Dark+",
+    "editor.fontSize": 14,
+    "terminal.integrated.fontSize": 14,
+
+    /* 6. TERMINAL ENVIRONMENT */
+    "terminal.integrated.env.linux": {
+        "PICO_SDK_PATH": "/home/coder/.pico-sdk/sdk/2.2.0",
+        "FREERTOS_KERNEL_PATH": "/home/coder/FreeRTOS-Kernel",
+        "PICO_TOOLCHAIN_PATH": "/usr/bin",
+        "PATH": "/home/coder/.pico-sdk/toolchain/14_2_Rel1/bin:/home/coder/.pico-sdk/cmake/v3.31.5/bin:/home/coder/.pico-sdk/ninja/v1.12.1:${env:PATH}"
+    }
+}
